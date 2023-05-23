@@ -23,6 +23,11 @@ async function updatePost(postId) {
   return response.json();
 }
 
+const METHOD = Object.freeze({
+  DELETE: Symbol(),
+  UPDATE: Symbol(),
+});
+
 export function PostDetail({ post }) {
   const { data, error, isError, isLoading } = useQuery(
     ["comments", post.id],
@@ -30,6 +35,25 @@ export function PostDetail({ post }) {
   );
 
   const deleteMutation = useMutation((postId) => deletePost(postId));
+  const updateMutation = useMutation((postId) => updatePost(postId));
+
+  const handleMutation = (type, mutation) => {
+    if (mutation.isError) {
+      const errorMessage = type === METHOD.DELETE ? "deleting" : "updating";
+      const msg = `Error ${errorMessage} the post`;
+      return <p style={{ color: "red" }}>{msg}</p>;
+    }
+    if (mutation.isLoading) {
+      const errorMessage = type === METHOD.DELETE ? "Deleting" : "Updating";
+      const msg = `${errorMessage} the post`;
+      return <p style={{ color: "purple" }}>{msg}</p>;
+    }
+    if (mutation.isSuccess) {
+      const errorMessage = type === METHOD.DELETE ? "deleted" : "updated";
+      const msg = `Post has (not) been ${errorMessage}`;
+      return <p style={{ color: "green" }}>{msg}</p>;
+    }
+  };
 
   if (isLoading) return <h3>Loading...</h3>;
   if (isError)
@@ -44,16 +68,11 @@ export function PostDetail({ post }) {
     <>
       <h3 style={{ color: "blue" }}>{post.title}</h3>
       <button onClick={() => deleteMutation.mutate(post.id)}>Delete</button>
-      {deleteMutation.isError && (
-        <p style={{ color: "red" }}>Error deleting the post</p>
-      )}
-      {deleteMutation.isLoading && (
-        <p style={{ color: "purple" }}>Deleting the post</p>
-      )}
-      {deleteMutation.isSuccess && (
-        <p style={{ color: "green" }}>Post has (not) been deleted</p>
-      )}
-      <button>Update title</button>
+      <button onClick={() => updateMutation.mutate(post.id)}>
+        Update title
+      </button>
+      {handleMutation(METHOD.DELETE, deleteMutation)}
+      {handleMutation(METHOD.UPDATE, updateMutation)}
       <p>{post.body}</p>
       <h4>Comments</h4>
       {data.map((comment) => (
