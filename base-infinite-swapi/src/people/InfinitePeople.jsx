@@ -1,6 +1,5 @@
 import InfiniteScroll from "react-infinite-scroller";
 import { useInfiniteQuery } from "react-query";
-
 import { Person } from "./Person";
 
 const initialUrl = "https://swapi.dev/api/people/";
@@ -18,5 +17,22 @@ export function InfinitePeople() {
     }
   );
 
-  return <InfiniteScroll />;
+  console.log("data: ", data);
+
+  return (
+    <InfiniteScroll hasMore={hasNextPage} loadMore={fetchNextPage}>
+      {data.pages.map((pageData) => {
+        return pageData.results.map((person) => {
+          return (
+            <Person
+              eyeColor={person.eye_color}
+              hairColor={person.hair_color}
+              key={person.name}
+              name={person.name}
+            />
+          );
+        });
+      })}
+    </InfiniteScroll>
+  );
 }
